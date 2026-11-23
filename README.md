@@ -25,14 +25,6 @@
   <a href="#-como-executar">Como executar</a>
 </p>
 
-> **🇺🇸 In short:** an end-to-end data platform on **Databricks** that integrates project data from
-> **Excel, ClickUp and MS Project** (60 projects, 3 formats, 18 data-quality issues) into a
-> **medallion architecture** (Lakeflow Declarative Pipelines, Unity Catalog). It computes Earned Value
-> metrics (SPI, CPI, EAC), classifies free-text status reports with **AI Functions**, and serves the results
-> through an **AI/BI dashboard**, a **React web app** and a **Genie AI agent** (20/20 on its benchmark).
-> Everything is **infrastructure as code** (Declarative Automation Bundles), tested in 5 layers and
-> runs end to end in **~4 minutes** every Monday.
-
 <p align="center">
   <img src="docs/img/demo.gif" alt="Demonstração: o agente de IA respondendo em português" width="760">
 </p>
