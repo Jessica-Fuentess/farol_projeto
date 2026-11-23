@@ -1,0 +1,30 @@
+# Estado local do Databricks — AQUI MORAM AS CHAVES DO DATA LAKE (variable-overrides.json)
+.databricks/
+
+# Segredos e variáveis locais
+.env
+*.env.local
+
+# Dados brutos completos (ficam no data lake; a amostra está em dados_exemplo/)
+dados/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info
+build/
+dist/
+
+# Node (app)
+node_modules/
+client/dist/
+
+# Editor e sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Arquivos separados para apagar (não vão para o GitHub)
+_to_delete/

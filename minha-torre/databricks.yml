@@ -1,0 +1,55 @@
+bundle:
+  name: minha-torre
+
+variables:
+  sql_warehouse_id:
+    description: SQL Warehouse ID
+  # O Genie "Farol · Diretoria" é recurso do bundle farol_projeto (resources/genie.genie_space.yml).
+  # O id sai de `databricks bundle summary --profile DEFAULT`, na raiz do repositório.
+  genie_space_id:
+    description: id do Genie "Farol · Diretoria"
+  genie_space_name:
+    description: nome do Genie "Farol · Diretoria"
+
+resources:
+  apps:
+    app:
+      name: "minha-torre"
+      description: "Projeto Farol: torre de controle do portfolio da Vertice"
+      source_code_path: ./
+
+      # Start the app automatically on deploy.
+      lifecycle:
+        started: true
+      # O Genie roda em nome de quem pergunta (OBO): cada pessoa vê só o que o Unity
+      # Catalog deixa ela ver. A 1ª visita pede consentimento OAuth (é esperado).
+      # "genie" é o escopo que o plugin genie do AppKit 0.84 exige (manifest do plugin:
+      # scopes: ["genie"]). Sem ele o chat dá "OAuth token does not have required scopes:
+      # genie". "dashboards.genie" fica para versões anteriores do AppKit.
+      user_api_scopes:
+        - sql
+        - genie
+        - dashboards.genie
+
+      # The resources which this app has access to.
+      resources:
+        - name: sql-warehouse
+          sql_warehouse:
+            id: ${var.sql_warehouse_id}
+            permission: CAN_USE
+        - name: genie-space
+          genie_space:
+            name: ${var.genie_space_name}
+            space_id: ${var.genie_space_id}
+            permission: CAN_RUN
+
+targets:
+  default:
+    default: true
+    workspace:
+      host: https://dbc-b7666745-6272.cloud.databricks.com
+
+    variables:
+      sql_warehouse_id: 0351872f3bd267d5
+      genie_space_id: 01f1e758267c1947b50e1e09aa69d232
+      genie_space_name: "Farol · Diretoria"

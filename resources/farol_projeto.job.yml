@@ -1,0 +1,91 @@
+# O job da Torre de Controle · toda segunda às 6h (America/Sao_Paulo). 6 tarefas:
+#   1 ingestao_data_lake   notebook (boto3): baixa os arquivos do data lake, pousa no volume
+#                          bronze.raw e recria as 9 tabelas bronze
+#   2 conferencia_bronze   sql_task: confere a contagem das 9 tabelas, para o job se divergir
+#   3 medalhao             pipeline farol_medalhao: silver (limpeza e integração das 3
+#                          ferramentas) e gold (fato semanal, situação de hoje, utilização)
+#   4 testes_de_qualidade  sql_task: 10 testes sobre silver e gold (raise_error se falhar)
+#   5 status_com_ia        sql_task: o texto do status vira coluna (regra, palavra-chave e IA),
+#                          MERGE incremental em gold.status_estruturado
+#   6 metricas_governadas  sql_task: a metric view gold.mv_projetos (as fórmulas dos KPIs)
+#   ingestao → conferencia → medalhao → (testes ‖ status_com_ia) → metricas_governadas
+# As chaves do data lake chegam por variável do bundle (o valor fica fora do Git).
+# max_concurrent_runs: 1 · duas execuções ao mesmo tempo apagariam a bronze uma da outra.
+# No target dev o agendamento fica pausado pelo preset trigger_pause_status.
+resources:
+  jobs:
+    farol_projeto_job:
+      name: farol_projeto_job
+      tasks:
+        # 1 · o notebook de ingestão: baixa do data lake (boto3) e recria as 9 tabelas bronze
+        - task_key: ingestao_data_lake
+          disabled: false
+          email_notifications: {}
+          notebook_task:
+            base_parameters:
+              AWS_ACCESS_KEY_ID: ${var.s3_access_key_id}
+              AWS_DEFAULT_REGION: ${var.s3_region}
+              AWS_SECRET_ACCESS_KEY: ${var.s3_secret_access_key}
+              S3_ENDPOINT: ${var.s3_endpoint}
+            notebook_path: ../src/ingestao/ingestao_boto3.py
+            source: WORKSPACE
+          run_if: ALL_SUCCESS
+          timeout_seconds: 0
+
+        # 2 · confere a contagem de linhas das 9 tabelas bronze antes de transformar
+        - task_key: conferencia_bronze
+          depends_on:
+            - task_key: ingestao_data_lake
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/conferencia/00-conferencia-bronze.sql
+
+        # 3 · o pipeline declarativo: silver e gold
+        - task_key: medalhao
+          depends_on:
+            - task_key: conferencia_bronze
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.farol_medalhao.id}
+
+        # 4 · os testes de qualidade sobre silver e gold (raise_error se algum falhar)
+        - task_key: testes_de_qualidade
+          depends_on:
+            - task_key: medalhao
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/testes/testes.sql
+
+        # 5 · o texto livre do status vira coluna (em paralelo com os testes)
+        - task_key: status_com_ia
+          depends_on:
+            - task_key: medalhao
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/ia/status_estruturado.sql
+
+        # 6 · as métricas governadas (metric view gold.mv_projetos): a fórmula de cada KPI
+        #     num lugar só, lida pelo Genie e pelo dashboard. Espera os testes E a IA.
+        - task_key: metricas_governadas
+          depends_on:
+            - task_key: testes_de_qualidade
+            - task_key: status_com_ia
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/metricas/metricas.sql
+
+      email_notifications:
+        no_alert_for_skipped_runs: false
+      max_concurrent_runs: 1
+      performance_target: PERFORMANCE_OPTIMIZED
+      queue:
+        enabled: true
+      schedule:
+        pause_status: PAUSED
+        quartz_cron_expression: 0 0 6 ? * MON   # toda segunda às 6h
+        timezone_id: America/Sao_Paulo
+      timeout_seconds: 0
+      webhook_notifications: {}

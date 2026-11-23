@@ -1,0 +1,200 @@
+{
+  "version": 2,
+  "config": {
+    "sample_questions": [
+      {
+        "id": "f4201000000000000000000000000001",
+        "question": [
+          "Quais projetos estão atrasados, e de quais clientes?"
+        ]
+      },
+      {
+        "id": "f4201000000000000000000000000002",
+        "question": [
+          "Quanto esse atraso vai me custar?"
+        ]
+      },
+      {
+        "id": "f4201000000000000000000000000003",
+        "question": [
+          "Tenho gente parada enquanto outro projeto pede gente?"
+        ]
+      },
+      {
+        "id": "f4201000000000000000000000000004",
+        "question": [
+          "O que vai dar errado no próximo mês?"
+        ]
+      }
+    ]
+  },
+  "data_sources": {
+    "tables": [
+      {
+        "identifier": "farol_projeto.gold.fato_projeto_semana"
+      },
+      {
+        "identifier": "farol_projeto.gold.projeto_situacao_atual"
+      },
+      {
+        "identifier": "farol_projeto.gold.status_estruturado"
+      },
+      {
+        "identifier": "farol_projeto.gold.utilizacao_pessoa_semana"
+      },
+      {
+        "identifier": "farol_projeto.silver.entregas_fornecedor"
+      }
+    ],
+    "metric_views": [
+      {
+        "identifier": "farol_projeto.gold.mv_projetos"
+      }
+    ]
+  },
+  "instructions": {
+    "text_instructions": [
+      {
+        "id": "f4201000000000000000000000000005",
+        "content": [
+          "QUEM PERGUNTA\n",
+          "Você responde ao dono da Vértice Tecnologia e à diretoria. Eles não escrevem SQL. A Vértice tem 60 projetos de sistemas para clientes de varejo, financeiro, saúde, logística e indústria (41 em andamento, 19 concluídos). Responda em português, com números em R$ (duas casas ou em mil/mi) e índices com 2 casas decimais. Comece pela resposta direta e depois o detalhe.\n",
+          "\n",
+          "DATAS\n",
+          "HOJE é 2026-10-16 (sexta-feira). Nunca use current_date() nem now(): escreva DATE'2026-10-16'.\n",
+          "- \"últimos 90 dias\" = data_status >= DATE'2026-07-18' (na gold.status_estruturado).\n",
+          "- \"últimas 12 semanas\" = semana > DATE'2026-07-24' (12 sextas, de 31/07 a 16/10/2026).\n",
+          "- \"próximo mês\" = de 2026-10-17 a 2026-11-16.\n",
+          "- Semanas terminam na sexta: a semana de 25/09/2026 é semana = DATE'2026-09-25'.\n",
+          "\n",
+          "FÓRMULAS E REGRAS DE CORTE\n",
+          "- SPI = EV / PV (prazo). CPI = EV / AC (custo). Abaixo de 1 é atraso / estouro.\n",
+          "- Regra de corte: SPI ou CPI < 0,9 = atenção, < 0,8 = crítico. A coluna situacao já traz isso: 'crítico', 'atenção', 'ok' ou 'concluído' (com acento, minúsculas).\n",
+          "- EAC = orçamento / CPI. Estouro previsto = EAC - orçamento, só quando positivo (já está na coluna estouro_previsto).\n",
+          "- Margem projetada = (valor do contrato - EAC) / valor do contrato.\n",
+          "- Atraso projetado (dias) = duração baseline / SPI - duração baseline.\n",
+          "- Razões da carteira são SOMA SOBRE SOMA (SUM(ev)/SUM(pv)), nunca média de SPIs.\n",
+          "\n",
+          "QUAL TABELA USAR\n",
+          "- Totais e KPIs de hoje da carteira em andamento (SPI, CPI, estouro, carteira, margem, quantos críticos, quantos em risco, quantas melancias): use a metric view farol_projeto.gold.mv_projetos com MEASURE(), por exemplo SELECT MEASURE(spi) FROM farol_projeto.gold.mv_projetos. Ela já filtra status = 'em_andamento'.\n",
+          "- Listas, rankings e um projeto específico (qual projeto tem o maior estouro, o SPI do PRJ-011, os códigos dos críticos): use farol_projeto.gold.projeto_situacao_atual, sempre com status = 'em_andamento' quando falar de projetos atuais. O código do projeto é a coluna projeto (PRJ-000) e o nome é a coluna nome.\n",
+          "- Histórico semana a semana: farol_projeto.gold.fato_projeto_semana (projeto_id, semana). PV, EV e AC são ACUMULADOS até a semana: nunca some semanas. Para o valor de uma semana, filtre a semana. O spi e o cpi da semana já estão prontos.\n",
+          "- Ferramenta do gerente: coluna ferramenta = 'excel', 'clickup' ou 'msproject'.\n",
+          "\n",
+          "FAROL E MELANCIA\n",
+          "- farol_do_gerente é o que o gerente reportou. farol_calculado é a regra do manual: verde com SPI >= 0,95, amarelo >= 0,90, vermelho abaixo.\n",
+          "- Melancia = farol do gerente verde e SPI < 0,9 (verde por fora, vermelho por dentro). Use a coluna booleana melancia (WHERE melancia). \"Farol verde mas atrasado\" é melancia.\n",
+          "\n",
+          "POR QUE UM PROJETO ATRASOU\n",
+          "\"Por que o projeto X atrasou\" ou \"qual a causa\" responde com farol_projeto.gold.status_estruturado dos últimos 90 dias (data_status >= DATE'2026-07-18'), filtrando projeto_id e EXCLUINDO causa_bloqueio 'sem_bloqueio' e 'nao_reportado'. A causa principal é a que mais aparece (COUNT(*)), e dias_impacto somados mostram o tamanho. Mostre bloqueio e quem_destrava. Junte o SPI de hoje (projeto_situacao_atual). Se a causa for falta_sre, mostre também os SREs ociosos (papel = 'sre', utilização < 20% nas últimas 12 semanas) que poderiam ser realocados.\n",
+          "Causas: change_freeze, falta_sre, dependencia_fornecedor, rotatividade, mudanca_escopo, bug_retrabalho, aprovacao_cliente.\n",
+          "\n",
+          "GENTE PARADA\n",
+          "\"Gente parada\", \"ociosa\" ou \"subutilizada\" = utilização < 20% nas últimas 12 semanas na farol_projeto.gold.utilizacao_pessoa_semana, calculada como SUM(horas_apontadas) / SUM(horas_disponiveis) agrupando por colaborador_id (semana > DATE'2026-07-24'). Papéis em minúsculas: 'sre', 'qa', 'dev_backend' etc. \"Projeto pedindo gente\" = causa falta_sre ou rotatividade no status dos últimos 90 dias.\n",
+          "\n",
+          "FORNECEDORES\n",
+          "Use farol_projeto.silver.entregas_fornecedor. Quem mais atrasa = maior AVG(prazo_real_dias / prazo_prometido_dias) por fornecedor. \"Entregas em atraso hoje\" = WHERE em_atraso. O nome do fornecedor já está normalizado (CodeForge Consultoria Ltda).\n",
+          "\n",
+          "O QUE VAI DAR ERRADO NO PRÓXIMO MÊS\n",
+          "Junte SEMPRE as duas fontes, como no SQL de exemplo dessa pergunta: (1) as entregas de consultoria em atraso (silver.entregas_fornecedor WHERE em_atraso) e os projetos delas, SEM filtro de data: elas já venceram e por isso pesam no próximo mês (são 5, todas da CodeForge), e (2) o change freeze de varejo da Black Friday, de 2026-11-01 a 2027-01-10, que trava deploy nos projetos de e-commerce em andamento. Projeto de e-commerce = status = 'em_andamento' e tipo_projeto contendo 'commerce', 'checkout' ou 'marketplace' (lower(tipo_projeto) LIKE '%commerce%' OR LIKE '%checkout%' OR LIKE '%marketplace%').\n",
+          "Se perguntarem \"o que eu faço agora\", depois da lista sugira ações concretas a partir dos dados: cobrar a CodeForge pelas entregas vencidas (ela entrega com prazo 1,41 vez o prometido), antecipar para antes de 01/11 o deploy dos projetos de e-commerce, e realocar gente ociosa para os projetos críticos que pedem gente (falta_sre ou rotatividade).\n",
+          "\n",
+          "CLIENTES\n",
+          "\"Quais clientes\" devolve cada cliente UMA vez (SELECT DISTINCT cliente), nunca uma linha por projeto."
+        ]
+      }
+    ],
+    "example_question_sqls": [
+      {
+        "id": "f4201000000000000000000000000006",
+        "question": [
+          "Quais projetos estão atrasados, e de quais clientes?"
+        ],
+        "sql": [
+          "-- Projetos em andamento em atenção ou críticos, do pior para o melhor\n",
+          "SELECT projeto, nome, cliente, situacao,\n",
+          "       ROUND(spi, 2) AS spi, ROUND(cpi, 2) AS cpi,\n",
+          "       ROUND(atraso_projetado_dias, 0) AS atraso_projetado_dias,\n",
+          "       farol_do_gerente, melancia\n",
+          "FROM farol_projeto.gold.projeto_situacao_atual\n",
+          "WHERE status = 'em_andamento'\n",
+          "  AND situacao IN ('crítico', 'atenção')\n",
+          "ORDER BY CASE situacao WHEN 'crítico' THEN 1 ELSE 2 END, spi"
+        ]
+      },
+      {
+        "id": "f4201000000000000000000000000007",
+        "question": [
+          "Quanto esse atraso vai me custar?"
+        ],
+        "sql": [
+          "-- Estouro previsto da carteira em andamento, por situação, pela metric view\n",
+          "SELECT situacao,\n",
+          "       MEASURE(projetos) AS projetos,\n",
+          "       ROUND(MEASURE(estouro_previsto), 2) AS estouro_previsto,\n",
+          "       ROUND(MEASURE(eac), 2) AS eac,\n",
+          "       ROUND(MEASURE(carteira), 2) AS carteira,\n",
+          "       ROUND(MEASURE(margem_projetada), 4) AS margem_projetada\n",
+          "FROM farol_projeto.gold.mv_projetos\n",
+          "GROUP BY ALL\n",
+          "ORDER BY estouro_previsto DESC"
+        ]
+      },
+      {
+        "id": "f4201000000000000000000000000008",
+        "question": [
+          "Tenho gente parada enquanto outro projeto pede gente?"
+        ],
+        "sql": [
+          "-- Pessoas com utilização < 20% nas últimas 12 semanas e os projetos que pedem gente\n",
+          "WITH ociosos AS (\n",
+          "  SELECT colaborador_id, nome, papel, senioridade, projeto_id AS projeto_atual,\n",
+          "         ROUND(SUM(horas_apontadas) / SUM(horas_disponiveis), 3) AS utilizacao,\n",
+          "         ROUND(SUM(custo_ocioso), 2) AS custo_ocioso_12_semanas\n",
+          "  FROM farol_projeto.gold.utilizacao_pessoa_semana\n",
+          "  WHERE semana > DATE'2026-07-24'\n",
+          "  GROUP BY colaborador_id, nome, papel, senioridade, projeto_id\n",
+          "  HAVING SUM(horas_apontadas) / SUM(horas_disponiveis) < 0.2\n",
+          "),\n",
+          "pedindo_gente AS (\n",
+          "  SELECT projeto_id, causa_bloqueio, COUNT(*) AS semanas_com_bloqueio, SUM(dias_impacto) AS dias_impacto\n",
+          "  FROM farol_projeto.gold.status_estruturado\n",
+          "  WHERE data_status >= DATE'2026-07-18'\n",
+          "    AND causa_bloqueio IN ('falta_sre', 'rotatividade')\n",
+          "  GROUP BY projeto_id, causa_bloqueio\n",
+          ")\n",
+          "SELECT o.colaborador_id, o.nome, o.papel, o.projeto_atual, o.utilizacao, o.custo_ocioso_12_semanas,\n",
+          "       p.projeto_id AS projeto_que_pede_gente, p.causa_bloqueio, p.semanas_com_bloqueio, p.dias_impacto\n",
+          "FROM ociosos o\n",
+          "LEFT JOIN pedindo_gente p\n",
+          "  ON (o.papel = 'sre' AND p.causa_bloqueio = 'falta_sre')\n",
+          "  OR (o.papel <> 'sre' AND p.causa_bloqueio = 'rotatividade')\n",
+          "ORDER BY o.utilizacao, p.dias_impacto DESC"
+        ]
+      },
+      {
+        "id": "f4201000000000000000000000000009",
+        "question": [
+          "O que vai dar errado no próximo mês?"
+        ],
+        "sql": [
+          "-- Riscos do próximo mês: entregas de consultoria em atraso + change freeze da Black Friday\n",
+          "SELECT 'entrega de fornecedor em atraso' AS risco, e.projeto_id AS projeto, p.cliente,\n",
+          "       CONCAT(e.fornecedor, ': ', e.item, ' prometida para ', CAST(e.data_prometida AS STRING)) AS detalhe\n",
+          "FROM farol_projeto.silver.entregas_fornecedor e\n",
+          "JOIN farol_projeto.gold.projeto_situacao_atual p ON p.projeto = e.projeto_id\n",
+          "WHERE e.em_atraso\n",
+          "UNION ALL\n",
+          "SELECT 'change freeze de varejo (01/11/2026 a 10/01/2027)' AS risco, projeto, cliente,\n",
+          "       CONCAT(tipo_projeto, ', situação ', situacao, ', SPI ', CAST(ROUND(spi, 2) AS STRING)) AS detalhe\n",
+          "FROM farol_projeto.gold.projeto_situacao_atual\n",
+          "WHERE status = 'em_andamento'\n",
+          "  AND (lower(tipo_projeto) LIKE '%commerce%'\n",
+          "       OR lower(tipo_projeto) LIKE '%checkout%'\n",
+          "       OR lower(tipo_projeto) LIKE '%marketplace%')\n",
+          "ORDER BY risco, projeto"
+        ]
+      }
+    ]
+  }
+}

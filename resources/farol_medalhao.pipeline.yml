@@ -1,0 +1,15 @@
+# Pipeline declarativo (Lakeflow, SQL, serverless): silver no schema padrão,
+# gold pelo nome completo farol_projeto.gold.x.
+resources:
+  pipelines:
+    farol_medalhao:
+      name: farol_medalhao
+      catalog: ${var.catalog}
+      schema: silver
+      serverless: true
+      photon: true
+      libraries:
+        - glob:
+            include: ../src/silver/**
+        - glob:
+            include: ../src/gold/**

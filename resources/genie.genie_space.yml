@@ -1,0 +1,11 @@
+# O Genie da diretoria: o dono pergunta em português, o Genie responde com SQL na gold.
+# O JSON (serialized_space v2) é GERADO por scripts/gerar_genie.py: não edite à mão nem
+# no workspace (editar lá trava o próximo bundle deploy com "modified remotely").
+# O Genie precisa das tabelas existindo: do zero, deploy → run do job → deploy.
+resources:
+  genie_spaces:
+    genie_farol:
+      title: "Farol · Diretoria"
+      description: "Pergunte em português sobre os 41 projetos em andamento da Vértice: atrasos, custo do atraso, gente parada e o que vai dar errado no próximo mês. Dados de 16/10/2026."
+      warehouse_id: ${var.warehouse_id}
+      file_path: ./farol.geniespace.json

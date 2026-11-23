@@ -1,0 +1,56 @@
+# This is a Declarative Automation Bundle definition for farol_projeto.
+# See https://docs.databricks.com/dev-tools/bundles/index.html for documentation.
+bundle:
+  name: farol_projeto
+  uuid: 56ca9071-075d-485c-a494-c9634f25e914
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: catálogo do projeto (bronze, silver e gold moram aqui)
+    default: farol_projeto
+  warehouse_id:
+    description: SQL warehouse das sql_task (o Serverless Starter Warehouse do Free Edition)
+    default: 0351872f3bd267d5
+  # As chaves do data lake: o valor fica em .databricks/bundle/dev/variable-overrides.json,
+  # fora do Git (o repositório é público).
+  s3_endpoint:
+    description: endpoint S3 do data lake (Supabase Storage)
+    default: https://ukdugtlqanxalrbpwaeg.storage.supabase.co/storage/v1/s3
+  s3_region:
+    description: região do data lake
+    default: us-east-1
+  s3_access_key_id:
+    description: chave do data lake (o valor fica fora do Git)
+  s3_secret_access_key:
+    description: chave do data lake (o valor fica fora do Git)
+
+targets:
+  dev:
+    # Sem 'mode: development': ele prefixaria os nomes com '[dev usuario]'.
+    # O preset só garante que o agendamento suba pausado.
+    default: true
+    presets:
+      trigger_pause_status: PAUSED
+    workspace:
+      host: https://dbc-b7666745-6272.cloud.databricks.com?w=7474654291929365
+  prod:
+    mode: production
+    workspace:
+      host: https://dbc-b7666745-6272.cloud.databricks.com?w=7474654291929365
+      # Deploy na pasta de quem roda o comando: uma cópia só por usuário.
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    permissions:
+      - user_name: ${workspace.current_user.userName}
+        level: CAN_MANAGE
+
+sync:
+  exclude:
+    - "docs/**"
+    - "dados_exemplo/**"
+    - "tests/genie-benchmark-diretoria.json"
+    # O app é um bundle próprio: sem isto o deploy do farol_projeto
+    # subiria o node_modules inteiro do app.
+    - "minha-torre/**"

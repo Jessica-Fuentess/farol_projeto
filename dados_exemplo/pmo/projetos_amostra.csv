@@ -1,0 +1,11 @@
+projeto_id,nome_projeto,cliente,segmento,tipo_projeto,ferramenta,codigo_ferramenta,valor_contrato,orcamento_custo,data_inicio,data_fim_baseline,status,gerente_projeto
+PRJ-001,Migração do mainframe para cloud - Fintech Pagar Fácil,Fintech Pagar Fácil,financeiro,Migração do mainframe para cloud,MS Project,PRJ-001_migracao_do_mainframe_para_clo.xml,7957000.00,6481944.40,09/01/2025,2026-10-09,em_andamento,Paulo Almeida
+PRJ-002,Implantação de ERP - Indústria Metal Forte,Indústria Metal Forte,industria,Implantação de ERP,Excel,Cronograma PRJ-002.xlsx,5318000.00,4051535.53,2025-02-10,2026-08-11,concluido,Rafael Rezende
+PRJ-003,Nova plataforma de e-commerce - Supermercados Bom Preço,Supermercados Bom Preço,varejo,Nova plataforma de e-commerce,Clickup,901200023757,3677000.00,2972206.67,18/04/2025,2026-09-16,em_andamento,Isabela Almeida
+PRJ-004,Core bancário - módulo de crédito - Seguradora Porto Firme,Seguradora Porto Firme,financeiro,Core bancário - módulo de crédito,ClickUp,901200031676,4054000.00,3319349.13,04/05/2025,2026-05-03,concluido,Nelson Ferraz
+PRJ-005,Portal do paciente - Rede Diagnóstica Vida,Rede Diagnóstica Vida,saude,Portal do paciente,ClickUp,901200039595,3093000.00,2273475.36,2025-05-21,2027-02-18,em_andamento,Olívia Siqueira
+PRJ-006,Roteirizador - Logística Expressa Brasil,Logística Expressa Brasil,logistica,Roteirizador,Clickup,901200047514,4621000.00,3734347.85,01/05/2025,2027-02-28,em_andamento,Patrícia Gomes
+PRJ-007,Integração omnichannel - Moda Viva Lojas,Moda Viva Lojas,varejo,Integração omnichannel,MS Project,PRJ-007_integracao_omnichannel.xml,2805000.00,2265546.73,2026-05-04,2027-07-03,em_andamento,Lucas Cardoso
+PRJ-008,Implantação de ERP - Alimentos Campo Bom,Alimentos Campo Bom,industria,Implantação de ERP,ClickUp,901200063352,3270000.00,2544229.26,2025-10-10,2027-08-09,em_andamento,Gabriela Almeida
+PRJ-009,Prontuário eletrônico - Rede Diagnóstica Vida,Rede Diagnóstica Vida,saude,Prontuário eletrônico,ClickUp,,2079000.00,1690802.95,19/12/2024,2026-10-18,em_andamento,Sérgio Nogueira
+PRJ-010,Integração com laboratórios - Hospital Santa Clara,Hospital Santa Clara,saude,Integração com laboratórios,excel,Cronograma PRJ-010.xlsx,3632000.00,2661110.60,2025-06-05,2026-06-04,concluido,Juliana Duarte
