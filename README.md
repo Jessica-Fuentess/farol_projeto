@@ -14,10 +14,10 @@
   <img src="https://img.shields.io/badge/React%20%2B%20TypeScript-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React + TypeScript">
 </p>
 
-> **🇺🇸 In short:** end-to-end data platform on Databricks that integrates Excel, ClickUp and MS Project data
-> into a medallion architecture, computes Earned Value metrics (SPI, CPI, EAC), reads free-text status with
-> AI Functions and serves it through a dashboard, a React app and an AI agent. Infrastructure as code,
-> 5 layers of data quality, ~4 min end to end.
+> **Em resumo:** plataforma de dados de ponta a ponta no Databricks. Integra Excel, ClickUp e MS Project numa
+> arquitetura medalhão, calcula indicadores de valor agregado (SPI, CPI, EAC), lê o texto livre dos status com
+> IA generativa e entrega tudo em um dashboard, um app web e um agente que responde em português.
+> Infraestrutura como código, 5 camadas de qualidade de dados e ~4 min de ponta a ponta.
 
 <p align="center">
   <img src="docs/img/demo.gif" alt="Demonstração: o agente de IA respondendo em português" width="760">
@@ -98,6 +98,18 @@ Job, pipeline, dashboard e agente são **código** (Declarative Automation Bundl
 - **IA generativa com custo sob controle:** `ai_classify` e `ai_extract` só onde agregam valor, com `MERGE` incremental.
 - **Governança:** Unity Catalog, metric view como fonte única dos KPIs, chaves fora do Git e agente consultando em nome do usuário.
 
+## 🧩 Competências demonstradas
+
+| Área | Na prática, neste projeto |
+|---|---|
+| **Engenharia de dados** | Ingestão de data lake (S3), arquitetura medalhão, pipeline declarativo, orquestração com dependências e agendamento |
+| **Qualidade de dados** | Expectations no pipeline, 10 testes de regra de negócio, conferência de contagens e reconciliação de valores entre camadas |
+| **Modelagem e SQL** | Integração de 3 fontes num modelo único, funções de janela, `MERGE` incremental, tabelas fato semanais |
+| **Análise e BI** | KPIs de gestão de projetos (EVM), dashboard executivo orientado a perguntas de negócio, métricas governadas |
+| **IA aplicada** | Classificação e extração de texto livre com LLM, agente de perguntas em linguagem natural validado com benchmark |
+| **DevOps e governança** | Infraestrutura como código, deploy pela CLI, segredos fora do Git, permissões no Unity Catalog |
+| **Produto de dados** | App web com simulador de decisão (custo × benefício de realocar uma pessoa) |
+
 ## 📚 Documentação
 
 | | |
@@ -163,6 +175,16 @@ O [`CLAUDE.md`](CLAUDE.md) é o contexto que guia a IA: regras de negócio, mode
 **Próximos passos:** modelo de ML para prever estouro em 30 dias · CI no GitHub Actions · fluxo de aprovação no app · alertas automáticos.
 
 </details>
+
+---
+
+## 👩‍💻 Sobre mim
+
+Depois de 18 anos em Comércio Exterior, Logística e Operações, migrei para dados. Este projeto junta as duas
+coisas: a engenharia para integrar e garantir a qualidade dos dados, e a visão de negócio de quem já precisou
+responder "esse projeto vai atrasar? quanto vai custar?" na vida real.
+
+Busco oportunidades como **Analista de Dados / BI** ou **Engenheira de Dados**.
 
 ---
 
